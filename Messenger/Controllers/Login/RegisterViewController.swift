@@ -20,6 +20,9 @@ class RegisterViewController: UIViewController {
         imageView.image = UIImage(systemName: "person")
         imageView.tintColor = .gray
         imageView.isUserInteractionEnabled = true
+        imageView.layer.masksToBounds = true
+        imageView.layer.borderWidth = 1
+        imageView.layer.borderColor = UIColor.link.cgColor
         return imageView
     }()
 
@@ -138,6 +141,7 @@ class RegisterViewController: UIViewController {
                                  y: 20,
                                  width: size,
                                  height: size)
+        imageView.layer.cornerRadius = imageView.width / 2
         firstNameField.frame = CGRect(x: 30,
                                   y: imageView.bottom + 20,
                                   width: scrollView.width - 60,
@@ -180,7 +184,7 @@ class RegisterViewController: UIViewController {
     }
 
     @objc private func didTapChangeProfilePicture() {
-        print("Change pic btn tapped")
+        presentPhotoActionSheet()
     }
 
     private func alertUserLoginError() {
@@ -201,4 +205,52 @@ extension RegisterViewController: UITextFieldDelegate {
         }
         return true
     }
+
+}
+
+extension RegisterViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+
+    func presentPhotoActionSheet() {
+        let actionSheet = UIAlertController(title: "Profile picture",
+                                            message: "How would you like to select a picture?",
+                                            preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: "Cancel",
+                                            style: .cancel,
+                                            handler: nil))
+        actionSheet.addAction(UIAlertAction(title: "Take a photo",
+                                            style: .default,
+                                            handler: { [weak self] _ in
+                                                self?.presentImagePicker(fromLibrary: false)
+        }))
+        actionSheet.addAction(UIAlertAction(title: "Choose from library",
+                                            style: .default,
+                                            handler: { [weak self] _ in
+                                                self?.presentImagePicker(fromLibrary: true)
+        }))
+        present(actionSheet, animated: true)
+    }
+
+    func presentImagePicker(fromLibrary: Bool) {
+        let pickerController = UIImagePickerController()
+        if fromLibrary {
+            pickerController.sourceType = .photoLibrary
+        } else {
+            pickerController.sourceType = .camera
+        }
+        pickerController.delegate = self
+        pickerController.allowsEditing = true
+        present(pickerController, animated: true)
+    }
+
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        picker.dismiss(animated: true)
+        guard let selectedImage = info[UIImagePickerController.InfoKey.editedImage] as? UIImage else { return }
+
+        self.imageView.image = selectedImage
+    }
+
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true)
+    }
+
 }
